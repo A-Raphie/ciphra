@@ -2,5 +2,23 @@
   "name": "@fhe-por/exchange-cli",
   "version": "0.1.0",
   "private": true,
-  "license": "BSD-3-Clause-Clear"
+  "license": "BSD-3-Clause-Clear",
+  "type": "module",
+  "bin": {
+    "exchange-cli": "src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "sign": "tsx src/index.ts sign",
+    "create-epoch": "tsx src/index.ts create-epoch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.30",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
+  }
 }
