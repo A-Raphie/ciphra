@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+out/
+.next/
+.turbo/
+
+# Hardhat / Solidity
+smart-contracts/artifacts/
+smart-contracts/cache/
+smart-contracts/types/
+smart-contracts/*.json
+!smart-contracts/package.json
+smart-contracts/deployed-addresses/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+*.env
+PRIVATE_KEY*
+DEPLOYER_MNEMONIC*
+EXCHANGE_SIGNER_KEY*
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Frontend
+.vercel
