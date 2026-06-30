@@ -31,8 +31,10 @@ type EIP1193Provider = {
  */
 export const wagmiConfig = getDefaultConfig({
   appName: "FHE Proof-of-Reserves",
+  // `||` (not `??`): an empty-string env var (e.g. NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
+  // with no value) must fall through to the fallback, or RainbowKit throws at SSR.
   projectId:
-    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "f6bb9afdd3de0d5a13f4c92e1538505e",
+    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "f6bb9afdd3de0d5a13f4c92e1538505e",
   chains: [sepolia],
   ssr: true,
   transports: {
