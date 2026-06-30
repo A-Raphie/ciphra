@@ -8,6 +8,14 @@ export const PROOF_OF_RESERVES_ADDRESS = (process.env.NEXT_PUBLIC_POR_ADDRESS ??
   "0x0000000000000000000000000000000000000000") as `0x${string}`;
 
 /**
+ * Deployed AuditorCredential address (soulbound ERC-721 that gates who may
+ * reveal + decrypt an epoch's aggregate total). Set NEXT_PUBLIC_AUDITOR_CREDENTIAL_ADDRESS
+ * after deploying. Falls back to the zero placeholder pre-deploy.
+ */
+export const AUDITOR_CREDENTIAL_ADDRESS = (process.env.NEXT_PUBLIC_AUDITOR_CREDENTIAL_ADDRESS ??
+  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+
+/**
  * True when no contract has been deployed yet (the zero-address placeholder).
  * The panes use this to show an honest "not deployed" banner instead of
  * silently failing reads against a non-existent contract.

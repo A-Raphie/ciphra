@@ -71,13 +71,17 @@ ok "deployed"
 
 # ── Read address + key back ─────────────────────────────────────────────────
 ADDR_FILE="$SC/deployments/sepolia/ProofOfReserves.json"
+CRED_FILE="$SC/deployments/sepolia/AuditorCredential.json"
 KEY_FILE="$SC/.deploy-exchange-key.json"
 [[ -f "$ADDR_FILE" ]] || die "Deployment artifact not found: $ADDR_FILE"
+[[ -f "$CRED_FILE" ]] || die "AuditorCredential artifact not found: $CRED_FILE"
 [[ -f "$KEY_FILE"  ]] || die "Exchange key file not found: $KEY_FILE (deploy should have created it)"
 
 POR_ADDR=$(node -e "console.log(require('$ADDR_FILE').address)")
+CRED_ADDR=$(node -e "console.log(require('$CRED_FILE').address)")
 EXCH_KEY=$(node -e "console.log(require('$KEY_FILE').privateKey)")
-ok "contract: $POR_ADDR"
+ok "ProofOfReserves: $POR_ADDR"
+ok "AuditorCredential: $CRED_ADDR"
 ok "exchange key: loaded"
 
 # ── Verify on Etherscan ─────────────────────────────────────────────────────
@@ -104,6 +108,7 @@ if [[ -f "$ENV_LOCAL" ]]; then
       else t += (t.endsWith('\n') ? '' : '\n') + k + '=' + v + '\n';
     };
     set('NEXT_PUBLIC_POR_ADDRESS', '$POR_ADDR');
+    set('NEXT_PUBLIC_AUDITOR_CREDENTIAL_ADDRESS', '$CRED_ADDR');
     set('EXCHANGE_SIGNER_PRIVATE_KEY', '$EXCH_KEY');
     fs.writeFileSync(path, t);
   "
@@ -115,11 +120,12 @@ else
     const path = '$ENV_LOCAL';
     let t = fs.readFileSync(path, 'utf8');
     t = t.replace(/NEXT_PUBLIC_POR_ADDRESS=.*/, 'NEXT_PUBLIC_POR_ADDRESS=$POR_ADDR');
+    t = t.replace(/NEXT_PUBLIC_AUDITOR_CREDENTIAL_ADDRESS=.*/, 'NEXT_PUBLIC_AUDITOR_CREDENTIAL_ADDRESS=$CRED_ADDR');
     t = t.replace(/EXCHANGE_SIGNER_PRIVATE_KEY=.*/, 'EXCHANGE_SIGNER_PRIVATE_KEY=$EXCH_KEY');
     fs.writeFileSync(path, t);
   "
 fi
-ok "frontend env wired (NEXT_PUBLIC_POR_ADDRESS, EXCHANGE_SIGNER_PRIVATE_KEY)"
+ok "frontend env wired (NEXT_PUBLIC_POR_ADDRESS, NEXT_PUBLIC_AUDITOR_CREDENTIAL_ADDRESS, EXCHANGE_SIGNER_PRIVATE_KEY)"
 
 # ── Seed ─────────────────────────────────────────────────────────────────────
 log "Seeding a demo epoch (1 epoch, 3 attestations)"

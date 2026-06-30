@@ -1,24 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useReadContracts, useWriteContract } from "wagmi";
+import { useAccount, useReadContracts, useWriteContract } from "wagmi";
 import { useDecryptPublicValues } from "@zama-fhe/react-sdk";
 import { Shell } from "@/components/Shell";
 import { NetworkGuard } from "@/components/NetworkGuard";
 import { ErrorText } from "@/components/ErrorText";
 import { UndeployedBanner } from "@/components/UndeployedBanner";
-import { CheckIcon, XIcon, AlertIcon } from "@/components/icons";
-import { proofOfReservesABI } from "@/lib/abi";
-import { PROOF_OF_RESERVES_ADDRESS, IS_UNDEPLOYED } from "@/lib/contract";
+import { CheckIcon, XIcon, AlertIcon, ShieldIcon } from "@/components/icons";
+import { proofOfReservesABI, auditorCredentialABI } from "@/lib/abi";
+import {
+  PROOF_OF_RESERVES_ADDRESS,
+  AUDITOR_CREDENTIAL_ADDRESS,
+  IS_UNDEPLOYED,
+} from "@/lib/contract";
 import { friendlyError } from "@/lib/errors";
 
+// getEpoch now returns: (liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
 type EpochTuple = readonly [
   bigint, // claimedLiabilities
   bigint, // deadline
-  bigint, // revealedTotal
   boolean, // solvent
   boolean, // revealed
   boolean, // fulfilled
+  `0x${string}`, // auditor (the accredited auditor who drove requestReveal)
   bigint, // attestationCount
 ];
 
@@ -32,10 +37,25 @@ function epochRow(epochId: bigint) {
 }
 
 export default function AuditPage() {
+  const { address } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
   const { mutateAsync: decryptPublic } = useDecryptPublicValues();
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Composable-privacy gate: is the connected wallet an accredited auditor?
+  const { data: auditorStatus } = useReadContracts({
+    contracts: [
+      {
+        address: AUDITOR_CREDENTIAL_ADDRESS,
+        abi: auditorCredentialABI,
+        functionName: "isAuditor",
+        args: [address ?? "0x0000000000000000000000000000000000000000"],
+      },
+    ],
+    query: { enabled: !!address && !IS_UNDEPLOYED },
+  });
+  const isAuditor = Boolean(auditorStatus?.[0].result);
 
   // First read how many epochs exist.
   const { data: nextEpochId } = useReadContracts({
@@ -56,19 +76,15 @@ export default function AuditPage() {
     query: { enabled: count > 0 },
   });
 
-  // Read fraud flags + encrypted handles per epoch (for reveal/fulfill).
+  // Read fraud flags + the encrypted VERDICT handle per epoch (for reveal/fulfill).
+  // The encrypted TOTAL handle is intentionally NOT read here for public display —
+  // it is auditor-gated for off-chain EIP-712 user-decryption only.
   const { data: extra } = useReadContracts({
     contracts: ids.flatMap((id) => [
       {
         address: PROOF_OF_RESERVES_ADDRESS,
         abi: proofOfReservesABI,
         functionName: "isFraudulent" as const,
-        args: [id] as const,
-      },
-      {
-        address: PROOF_OF_RESERVES_ADDRESS,
-        abi: proofOfReservesABI,
-        functionName: "getEncryptedTotal" as const,
         args: [id] as const,
       },
       {
@@ -103,16 +119,16 @@ export default function AuditPage() {
     setError(null);
     setBusy(id);
     try {
-      const totalHandle = extra?.[id * 3 + 1].result as unknown as `0x${string}` | undefined;
-      const solventHandle = extra?.[id * 3 + 2].result as unknown as `0x${string}` | undefined;
-      if (!totalHandle || !solventHandle) throw new Error("Handles not loaded");
+      // Verdict-only public decryption. The total handle is never public.
+      const solventHandle = extra?.[id * 2 + 1].result as unknown as `0x${string}` | undefined;
+      if (!solventHandle) throw new Error("Verdict handle not loaded");
 
-      const result = await decryptPublic([totalHandle, solventHandle]);
+      const result = await decryptPublic([solventHandle]);
       await writeContractAsync({
         address: PROOF_OF_RESERVES_ADDRESS,
         abi: proofOfReservesABI,
-        functionName: "fulfillPublicDecryption",
-        args: [BigInt(id), [totalHandle, solventHandle], result.abiEncodedClearValues, result.decryptionProof],
+        functionName: "fulfillVerdict",
+        args: [BigInt(id), [solventHandle], result.abiEncodedClearValues, result.decryptionProof],
       });
       await refetch();
     } catch (e) {
@@ -126,11 +142,31 @@ export default function AuditPage() {
     <Shell>
       <h1 className="mb-1 text-2xl font-bold">Auditor</h1>
       <p className="mb-6 text-muted">
-        Publicly verify each epoch&rsquo;s solvency — without seeing any
-        individual balance. Anyone can drive the trustless reveal.
+        Verify each epoch&rsquo;s solvency without seeing any individual balance.
+        The 1-bit verdict is public; the aggregate total is decryptable only by
+        an accredited auditor.
       </p>
 
       {IS_UNDEPLOYED && <UndeployedBanner />}
+
+      {/* Auditor accreditation status — the composable-privacy credential gate. */}
+      <div className="mb-4 flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm">
+        <ShieldIcon aria-label="Auditor credential" />
+        {address ? (
+          isAuditor ? (
+            <span className="text-success">
+              You are an accredited auditor — you may reveal epochs and decrypt the aggregate total.
+            </span>
+          ) : (
+            <span className="text-muted">
+              You are not accredited. Only an accredited auditor can drive the reveal. The 1-bit
+              verdict is still public once revealed.
+            </span>
+          )
+        ) : (
+          <span className="text-muted">Connect a wallet to check auditor accreditation.</span>
+        )}
+      </div>
 
       <NetworkGuard>
         {count === 0 ? (
@@ -150,12 +186,11 @@ export default function AuditPage() {
             {ids.map((idBig, i) => {
               const e = rows?.[i].result as EpochTuple | undefined;
               if (!e) return null;
-              const [liabilities, deadline, revealedTotal, solvent, revealed, fulfilled, attCount] = e;
-              const fraudulent = extra?.[i * 3].result as boolean | undefined;
+              const [liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount] = e;
+              const fraudulent = extra?.[i * 2].result as boolean | undefined;
+              const solventHandle = extra?.[i * 2 + 1].result as unknown as `0x${string}` | undefined;
               const now = Math.floor(Date.now() / 1000);
               const closed = deadline !== 0n && BigInt(now) >= deadline;
-              const totalHandle = extra?.[i * 3 + 1].result as unknown as `0x${string}` | undefined;
-              const solventHandle = extra?.[i * 3 + 2].result as unknown as `0x${string}` | undefined;
 
               return (
                 <div key={i} className="card">
@@ -196,32 +231,44 @@ export default function AuditPage() {
                           : new Date(Number(deadline) * 1000).toLocaleString()}
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                       {!closed && deadline !== 0n && (
                         <span className="text-xs text-muted">window open</span>
                       )}
                       {closed && !revealed && (
                         <button
                           className="btn-ghost text-sm"
-                          disabled={busy === i || isPending}
+                          disabled={busy === i || isPending || !isAuditor}
+                          title={isAuditor ? undefined : "Only an accredited auditor can reveal"}
                           onClick={() => reveal(i)}
                         >
-                          {busy === i ? "…" : "1. Reveal"}
+                          {busy === i ? "…" : "1. Reveal (auditor)"}
                         </button>
                       )}
-                      {revealed && !fulfilled && totalHandle && solventHandle && (
+                      {revealed && !fulfilled && solventHandle && (
                         <button
                           className="btn-primary text-sm"
                           disabled={busy === i || isPending}
                           onClick={() => fulfill(i)}
                         >
-                          {busy === i ? "…" : "2. Decrypt & verify"}
+                          {busy === i ? "…" : "2. Decrypt verdict"}
                         </button>
                       )}
                       {fulfilled && (
                         <div className="text-right text-sm">
-                          <div className="text-muted">revealed total</div>
-                          <div className="font-mono text-lg">{revealedTotal.toString()}</div>
+                          <div className="text-muted">verdict</div>
+                          <div className={`font-mono text-lg ${solvent ? "text-success" : "text-warning"}`}>
+                            {solvent ? "SOLVENT" : "INSOLVENT"}
+                          </div>
+                          <div className="mt-0.5 text-xs text-muted">
+                            total: auditor-gated
+                            {auditor !== "0x0000000000000000000000000000000000000000" && (
+                              <>
+                                {" "}
+                                · {auditor.slice(0, 8)}…
+                              </>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>

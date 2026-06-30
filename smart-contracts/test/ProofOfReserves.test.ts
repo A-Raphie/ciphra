@@ -122,7 +122,7 @@ describe("ProofOfReserves", function () {
     await por
       .connect(s.nobody)
       .fulfillVerdict(epochId, [solventHandle], result.abiEncodedClearValues, result.decryptionProof);
-    return Boolean(result.clearValues[0]);
+    return Boolean(result.clearValues[solventHandle as `0x${string}`]);
   }
 
   describe("deployment & access control", () => {

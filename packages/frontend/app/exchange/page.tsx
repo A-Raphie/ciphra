@@ -6,10 +6,14 @@ import { Shell } from "@/components/Shell";
 import { NetworkGuard } from "@/components/NetworkGuard";
 import { TxLink } from "@/components/TxLink";
 import { ErrorText } from "@/components/ErrorText";
-import { CheckIcon } from "@/components/icons";
+import { CheckIcon, ShieldIcon } from "@/components/icons";
 import { UndeployedBanner } from "@/components/UndeployedBanner";
-import { proofOfReservesABI } from "@/lib/abi";
-import { PROOF_OF_RESERVES_ADDRESS, IS_UNDEPLOYED } from "@/lib/contract";
+import { proofOfReservesABI, auditorCredentialABI } from "@/lib/abi";
+import {
+  PROOF_OF_RESERVES_ADDRESS,
+  AUDITOR_CREDENTIAL_ADDRESS,
+  IS_UNDEPLOYED,
+} from "@/lib/contract";
 import { friendlyError } from "@/lib/errors";
 import { isValidUint } from "@/lib/parse";
 
@@ -18,11 +22,14 @@ export default function ExchangePage() {
   const { writeContractAsync, isPending } = useWriteContract();
   const [liabilities, setLiabilities] = useState("");
   const [windowSeconds, setWindowSeconds] = useState("3600");
+  const [auditorAddr, setAuditorAddr] = useState("");
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [accreditTx, setAccreditTx] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const liabId = useId();
   const windowId = useId();
+  const auditorInputId = useId();
 
   const { data: nextEpochId } = useReadContract({
     address: PROOF_OF_RESERVES_ADDRESS,
@@ -44,10 +51,21 @@ export default function ExchangePage() {
 
   const isAdmin = !!address && admin === address;
 
+  // Composable-privacy registrar: the AuditorCredential's registrar (expected to
+  // be the admin) accredits auditors. Only a registrar may accredit/revoke.
+  const { data: registrar } = useReadContract({
+    address: AUDITOR_CREDENTIAL_ADDRESS,
+    abi: auditorCredentialABI,
+    functionName: "registrar",
+  });
+  const isRegistrar = !!address && registrar === address;
+
   // Live validation — disables submit instead of throwing on bad input.
   const liabValid = isValidUint(liabilities);
   const windowValid = isValidUint(windowSeconds);
   const canSubmit = liabValid && windowValid && !isPending;
+  const auditorAddrValid = /^0x[a-fA-F0-9]{40}$/.test(auditorAddr);
+  const canAccredit = auditorAddrValid && !isPending;
 
   async function handleCreate() {
     if (!liabValid || !windowValid) return;
@@ -62,6 +80,24 @@ export default function ExchangePage() {
       });
       setTxHash(hash);
       setLiabilities("");
+    } catch (e) {
+      setError(friendlyError(e));
+    }
+  }
+
+  async function handleAccredit() {
+    if (!auditorAddrValid) return;
+    setError(null);
+    setAccreditTx(null);
+    try {
+      const hash = await writeContractAsync({
+        address: AUDITOR_CREDENTIAL_ADDRESS,
+        abi: auditorCredentialABI,
+        functionName: "accredit",
+        args: [auditorAddr as `0x${string}`],
+      });
+      setAccreditTx(hash);
+      setAuditorAddr("");
     } catch (e) {
       setError(friendlyError(e));
     }
@@ -183,6 +219,61 @@ export default function ExchangePage() {
             )}
           </NetworkGuard>
         </div>
+      </div>
+
+      {/* Composable-privacy registrar: accredit auditors (ERC-721 credential). */}
+      <div className="mt-4 card">
+        <h2 className="mb-1 flex items-center gap-2 font-semibold">
+          <ShieldIcon aria-label="Auditor credential" /> Auditor accreditation
+        </h2>
+        <p className="mb-3 text-sm text-muted">
+          The registrar accredits auditors with a soulbound ERC-721 credential.
+          Only a credential holder can drive an epoch&rsquo;s reveal and decrypt
+          the aggregate reserve total off-chain.
+        </p>
+        <NetworkGuard>
+          {!isConnected ? (
+            <p className="text-sm text-muted">Connect your wallet first.</p>
+          ) : !isRegistrar ? (
+            <p className="text-sm text-warning">
+              Only the registrar ({registrar ? `${registrar.slice(0, 8)}…` : "—"}) can
+              accredit auditors. The registrar is set at deployment (defaults to the
+              exchange admin).
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="label" htmlFor={auditorInputId}>
+                  Auditor address to accredit
+                </label>
+                <input
+                  id={auditorInputId}
+                  className="input"
+                  type="text"
+                  placeholder="0x…"
+                  value={auditorAddr}
+                  onChange={(e) => setAuditorAddr(e.target.value)}
+                  aria-invalid={auditorAddr.length > 0 && !auditorAddrValid}
+                />
+                {auditorAddr.length > 0 && !auditorAddrValid && (
+                  <p className="mt-1 text-xs text-danger">Enter a valid 0x address.</p>
+                )}
+              </div>
+              <button
+                className="btn-primary"
+                disabled={!canAccredit}
+                onClick={handleAccredit}
+              >
+                {isPending ? "Accrediting…" : "Accredit auditor"}
+              </button>
+              {accreditTx && (
+                <p className="text-xs text-success" aria-live="polite">
+                  Accredited: <TxLink value={accreditTx} type="tx" />
+                </p>
+              )}
+            </div>
+          )}
+        </NetworkGuard>
       </div>
 
       <p className="mt-6 text-xs text-muted">

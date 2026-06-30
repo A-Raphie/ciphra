@@ -25,10 +25,10 @@ const ChallengeForm = dynamic(
 type EpochInfo = readonly [
   bigint, // claimedLiabilities
   bigint, // deadline
-  bigint, // revealedTotal
   boolean, // solvent
   boolean, // revealed
   boolean, // fulfilled
+  `0x${string}`, // auditor
   bigint, // attestationCount
 ];
 
