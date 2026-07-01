@@ -7,6 +7,8 @@ import {
   AuditorCredential__factory,
   ProofOfReserves,
   ProofOfReserves__factory,
+  ProofOfReservesFactory,
+  ProofOfReservesFactory__factory,
 } from "../types";
 
 type Signers = {
@@ -685,6 +687,93 @@ describe("ProofOfReserves", function () {
       expect(info.solvent).to.eq(true); // 1.05M >= 1M liabilities
       expect(info.token).to.eq(TEST_TOKEN);
       expect(info.auditor).to.eq(s.auditor.address);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Factory: multi-exchange onboarding. Each registration deploys an isolated
+  // (AuditorCredential, ProofOfReserves) pair.
+  // ---------------------------------------------------------------------------
+  describe("ProofOfReservesFactory (exchange onboarding)", () => {
+    let factory: ProofOfReservesFactory;
+
+    beforeEach(async () => {
+      const ff = (await ethers.getContractFactory("ProofOfReservesFactory")) as ProofOfReservesFactory__factory;
+      factory = await ff.deploy();
+      await factory.waitForDeployment();
+    });
+
+    it("registers an exchange and emits the deployed addresses", async () => {
+      await expect(factory.registerExchange(s.admin.address, s.exchangeSigner.address))
+        .to.emit(factory, "ExchangeRegistered")
+        .withArgs(0, s.admin.address, (addr: string) => addr !== ethers.ZeroAddress, (addr: string) => addr !== ethers.ZeroAddress, s.exchangeSigner.address);
+
+      const ex = await factory.getExchange(0);
+      expect(ex.admin).to.eq(s.admin.address);
+      expect(ex.por).to.not.eq(ethers.ZeroAddress);
+      expect(ex.auditorCredential).to.not.eq(ethers.ZeroAddress);
+      expect(ex.registeredAt).to.be.gt(0);
+      expect(await factory.exchangeCount()).to.eq(1);
+    });
+
+    it("rejects admin == signer (hot-key compromise must not forge attestations)", async () => {
+      await expect(factory.registerExchange(s.admin.address, s.admin.address)).to.be.revertedWithCustomError(
+        factory,
+        "AdminCannotBeSigner",
+      );
+    });
+
+    it("rejects zero addresses", async () => {
+      await expect(factory.registerExchange(ethers.ZeroAddress, s.exchangeSigner.address)).to.be.revertedWithCustomError(
+        factory,
+        "ZeroAddress",
+      );
+      await expect(factory.registerExchange(s.admin.address, ethers.ZeroAddress)).to.be.revertedWithCustomError(
+        factory,
+        "ZeroAddress",
+      );
+    });
+
+    it("registers two isolated exchanges with independent contracts", async () => {
+      await factory.registerExchange(s.admin.address, s.exchangeSigner.address);
+      // A second exchange with different keys.
+      await factory.registerExchange(s.customer1.address, s.customer2.address);
+
+      expect(await factory.exchangeCount()).to.eq(2);
+      const a = await factory.getExchange(0);
+      const b = await factory.getExchange(1);
+      expect(a.por).to.not.eq(b.por, "each exchange gets its own PoR contract");
+      expect(a.auditorCredential).to.not.eq(b.auditorCredential, "each gets its own credential");
+      expect(b.admin).to.eq(s.customer1.address);
+
+      // Exchange A's admin is NOT exchange B's admin (isolation).
+      const porB = ProofOfReserves__factory.connect(b.por, s.admin);
+      await expect(porB.createEpoch(TEST_TOKEN, TEST_DECIMALS, 1000, EPOCH_WINDOW)).to.be.revertedWithCustomError(
+        porB,
+        "NotExchangeAdmin",
+      );
+    });
+
+    it("the deployed PoR works end-to-end (create epoch + attest + reveal)", async () => {
+      await (await factory.registerExchange(s.admin.address, s.exchangeSigner.address)).wait();
+      const ex = await factory.getExchange(0);
+      por = ProofOfReserves__factory.connect(ex.por, s.admin);
+      porAddr = ex.por;
+      cred = AuditorCredential__factory.connect(ex.auditorCredential, s.admin);
+      credAddr = ex.auditorCredential;
+
+      // Accredit an auditor + open an epoch + attest + reveal.
+      await (await cred.connect(s.admin).accredit(s.auditor.address)).wait();
+      const { epochId, deadline } = await createEpoch(1000n);
+      await submitAttestation(epochId, deadline, s.customer1, 1500n);
+      await time.increaseTo(Number(deadline) + 1);
+      await por.connect(s.auditor).requestReveal(epochId);
+
+      const solventHandle = ethers.hexlify(await por.getEncryptedSolvent(epochId));
+      const result = await fhevm.publicDecrypt([solventHandle]);
+      await por.fulfillVerdict(epochId, [solventHandle], result.abiEncodedClearValues, result.decryptionProof);
+
+      expect(await por.isSolvent(epochId)).to.eq(true);
     });
   });
 });
