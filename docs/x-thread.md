@@ -12,7 +12,7 @@ What if an exchange could prove solvency without doxxing a single customer — a
 
 2/ Introducing **FHE Proof-of-Reserves** — composable confidential solvency on the @zama Protocol.
 
-An exchange proves `reserves ≥ liabilities` while every customer balance stays encrypted on-chain. Built for Zama Developer Program Season 3: *"Composable Privacy Is the Key."*
+An exchange proves `reserves ≥ liabilities` — denominated in **real tokens** like cUSDC — while every customer balance stays encrypted on-chain. And it's a real product: any exchange can onboard itself. Built for Zama Developer Program Season 3: *"Composable Privacy Is the Key."*
 
 <URL>
 
@@ -24,9 +24,9 @@ An exchange proves `reserves ≥ liabilities` while every customer balance stays
 
 4/ How it works:
 
-1️⃣ Each customer's balance is encrypted in their browser (euint64)
-2️⃣ The exchange signs the ciphertext off-chain
-3️⃣ The contract sums **ciphertexts** with `FHE.add` — it never sees a plaintext
+1️⃣ An exchange **onboards itself** via a factory contract — gets its own isolated attestation contract, auditor registry, and reserve token
+2️⃣ Each customer's balance is encrypted in their browser (euint64), denominated in the epoch's token (cUSDC, cUSDT…)
+3️⃣ The exchange signs the ciphertext off-chain; the contract sums **ciphertexts** with `FHE.add` — it never sees a plaintext
 4️⃣ After the window, an auditor with a soulbound ERC-721 credential drives the reveal; `FHE.ge(total, liabilities)` decides solvency on-chain
 
 5/ The composable-privacy seam: `requestReveal` checks `auditorCredential.balanceOf(msg.sender) > 0` *before any FHE work*, then calls `FHE.allow(encryptedTotal, msg.sender)`. The right to decrypt the total is derived from an on-chain identity primitive. Revoke the credential → the auditor loses all future access instantly.

@@ -17,7 +17,7 @@
 ## 0:15–0:40 — The idea + the composable-privacy hook
 - "I built FHE Proof-of-Reserves on the Zama Protocol: an exchange proves its
   reserves exceed its liabilities while every customer balance stays fully
-  encrypted on-chain."
+  encrypted on-chain — **denominated in real tokens** like cUSDC."
 - One-line on FHE: "the contract can add and compare ciphertexts without ever
   decrypting them."
 - **The Season-3 angle (land this):** "But here's the composition. Not everyone
@@ -25,17 +25,23 @@
   decryption rights and gate them with an on-chain credential. The 1-bit
   solvency verdict is public. The actual reserve number is decryptable *only* by
   an auditor holding a soulbound ERC-721. That's composable privacy."
+- "And it's a real product, not a single demo: any exchange can **onboard
+  itself** via a factory contract — each gets its own isolated attestation
+  contract, auditor registry, and reserve token."
 
-## 0:40–1:40 — Live demo (screen recording, 3 panes)
-1. **Exchange pane** — "First the exchange opens an epoch, publishes its
-   liabilities claim, and accredits an auditor — minting a non-transferable
-   credential to a vetted address."
-2. **Customer pane** — "A customer enters their balance. It's encrypted in their
+## 0:40–1:40 — Live demo (screen recording, 4 panes)
+1. **Onboard pane** — "First an exchange registers itself. One transaction
+   deploys its own isolated contracts. The factory enforces the admin key and
+   signing key are different — so a hot-key compromise can't forge attestations."
+2. **Exchange pane** — "The exchange opens an epoch, **chooses its reserve token**
+   (cUSDC), publishes its liabilities claim, and accredits an auditor — minting a
+   non-transferable credential to a vetted address."
+3. **Customer pane** — "A customer enters their balance. It's encrypted in their
    browser — this number never leaves their machine in plaintext. The exchange
    signs the ciphertext; the customer submits it."
    - Show 2 customers submitting. "The contract sums *ciphertexts*. Nobody —
      not even the contract deployer — can read any individual balance."
-3. **Auditor pane** — "The window closes. Now the *auditor* — not anyone —
+4. **Auditor pane** — "The window closes. Now the *auditor* — not anyone —
    triggers the reveal. The contract checks their credential on-chain, computes
    solvency via `FHE.ge`, marks the verdict public, and grants *that auditor
    alone* access to the encrypted total. The verdict lands on-chain: solvent.
