@@ -15,8 +15,10 @@ import {
 import { proofOfReservesABI } from "@/lib/abi";
 import { PROOF_OF_RESERVES_ADDRESS, IS_UNDEPLOYED } from "@/lib/contract";
 
-// getEpoch returns: (liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
+// getEpoch returns: (token, decimals, liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
 type EpochTuple = readonly [
+  `0x${string}`, // token
+  number, // decimals
   bigint, // claimedLiabilities
   bigint, // deadline
   boolean, // solvent
@@ -66,11 +68,13 @@ function useLiveEpoch0() {
   return {
     isLoading: isLoading || (!IS_UNDEPLOYED && data === undefined),
     hasEpoch,
-    liabilities: epoch?.[0],
-    solvent: epoch?.[2],
-    revealed: epoch?.[3],
-    fulfilled: epoch?.[4],
-    attestationCount: epoch?.[6],
+    token: epoch?.[0],
+    decimals: epoch?.[1],
+    liabilities: epoch?.[2],
+    solvent: epoch?.[4],
+    revealed: epoch?.[5],
+    fulfilled: epoch?.[6],
+    attestationCount: epoch?.[8],
     fraudulent,
   };
 }

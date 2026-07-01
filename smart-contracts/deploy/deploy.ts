@@ -73,6 +73,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`  exchangeSigner: ${exchangeSigner}`);
   console.log(`  Etherscan     : https://sepolia.etherscan.io/address/${deployed.address}`);
 
+  // The factory enables multi-exchange onboarding: each registerExchange() call
+  // deploys a fresh, isolated (AuditorCredential, ProofOfReserves) pair. The
+  // standalone PoR/credential above remains as the bootstrap demo exchange.
+  const factory = await deploy("ProofOfReservesFactory", {
+    from: deployer,
+    args: [],
+    log: true,
+    waitConfirmations: 5,
+  });
+  console.log(`ProofOfReservesFactory deployed at: ${factory.address}`);
+
   if (exchangeAdmin === exchangeSigner) {
     console.log(`  ⚠ admin == signer (single-key demo model).`);
   }
@@ -80,4 +91,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 export default func;
 func.id = "deploy_proofOfReserves";
-func.tags = ["ProofOfReserves", "AuditorCredential"];
+func.tags = ["ProofOfReserves", "AuditorCredential", "ProofOfReservesFactory"];

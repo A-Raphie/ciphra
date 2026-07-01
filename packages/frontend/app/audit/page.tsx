@@ -13,11 +13,14 @@ import {
   PROOF_OF_RESERVES_ADDRESS,
   AUDITOR_CREDENTIAL_ADDRESS,
   IS_UNDEPLOYED,
+  tokenInfo,
 } from "@/lib/contract";
 import { friendlyError } from "@/lib/errors";
 
-// getEpoch returns: (liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
+// getEpoch returns: (token, decimals, liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
 type EpochTuple = readonly [
+  `0x${string}`, // token
+  number, // decimals
   bigint, // claimedLiabilities
   bigint, // deadline
   boolean, // solvent
@@ -190,7 +193,7 @@ export default function AuditPage() {
             {ids.map((idBig, i) => {
               const e = rows?.[i].result as EpochTuple | undefined;
               if (!e) return null;
-              const [liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount] = e;
+              const [epochToken, epochDecimals, liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount] = e;
               const fraudulent = extra?.[i * 2].result as boolean | undefined;
               const solventHandle = extra?.[i * 2 + 1].result as unknown as `0x${string}` | undefined;
               const now = Math.floor(Date.now() / 1000);
@@ -229,6 +232,10 @@ export default function AuditPage() {
                         )}
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted">
+                        <span>
+                          <span className="text-muted-foreground">token </span>
+                          <span className="font-mono text-foreground">{tokenInfo(epochToken).symbol}</span>
+                        </span>
                         <span>
                           <span className="text-muted-foreground">liabilities </span>
                           <span className="font-mono text-foreground">{liabilities.toString()}</span>

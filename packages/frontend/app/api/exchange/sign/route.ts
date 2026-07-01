@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
 
   let body: {
     epochId: string;
+    token: string; // the confidential token this epoch is denominated in
     customer: string;
     handle: string;
     deadline: string;
@@ -32,8 +33,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const { epochId, customer, handle, deadline } = body;
-  if (!epochId || !customer || !handle || !deadline) {
+  const { epochId, token, customer, handle, deadline } = body;
+  if (!epochId || !token || !customer || !handle || !deadline) {
     return NextResponse.json({ error: "Missing fields." }, { status: 400 });
   }
 
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
     const signature = await signAttestation(
       privateKey,
       BigInt(epochId),
+      token,
       customer,
       handle,
       BigInt(deadline),

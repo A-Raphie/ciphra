@@ -24,6 +24,8 @@ const ChallengeForm = dynamic(
 );
 
 type EpochInfo = readonly [
+  `0x${string}`, // token
+  number, // decimals
   bigint, // claimedLiabilities
   bigint, // deadline
   boolean, // solvent
@@ -54,7 +56,8 @@ export default function CustomerPage() {
     query: { enabled: isConnected },
   });
   const epoch = rawEpoch as EpochInfo | undefined;
-  const deadline = epoch?.[1] ?? 0n;
+  const epochToken = epoch?.[0];
+  const deadline = epoch?.[3] ?? 0n;
   const now = Math.floor(Date.now() / 1000);
   const open = deadline !== 0n && BigInt(now) < deadline;
 
@@ -62,7 +65,7 @@ export default function CustomerPage() {
   const canSubmit = balanceValid && open && !isPending && !isEncrypting;
 
   async function handleSubmit() {
-    if (!address || !balanceValid) return;
+    if (!address || !balanceValid || !epochToken) return;
     setError(null);
     setStatus(null);
     try {
@@ -81,6 +84,7 @@ export default function CustomerPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           epochId,
+          token: epochToken,
           customer: address,
           handle,
           deadline: deadline.toString(),

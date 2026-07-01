@@ -13,15 +13,18 @@ import {
   PROOF_OF_RESERVES_ADDRESS,
   AUDITOR_CREDENTIAL_ADDRESS,
   IS_UNDEPLOYED,
+  SEPOLIA_TOKENS,
+  type TokenInfo,
 } from "@/lib/contract";
 import { friendlyError } from "@/lib/errors";
-import { isValidUint } from "@/lib/parse";
+import { isValidUint, parseTokenAmount } from "@/lib/parse";
 
 export default function ExchangePage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
   const [liabilities, setLiabilities] = useState("");
   const [windowSeconds, setWindowSeconds] = useState("3600");
+  const [token, setToken] = useState<TokenInfo>(SEPOLIA_TOKENS[0]);
   const [auditorAddr, setAuditorAddr] = useState("");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [accreditTx, setAccreditTx] = useState<string | null>(null);
@@ -29,6 +32,7 @@ export default function ExchangePage() {
 
   const liabId = useId();
   const windowId = useId();
+  const tokenId = useId();
   const auditorInputId = useId();
 
   const { data: nextEpochId } = useReadContract({
@@ -75,7 +79,7 @@ export default function ExchangePage() {
         address: PROOF_OF_RESERVES_ADDRESS,
         abi: proofOfReservesABI,
         functionName: "createEpoch",
-        args: [BigInt(liabilities), BigInt(windowSeconds)],
+        args: [token.address, token.decimals, BigInt(liabilities), BigInt(windowSeconds)],
       });
       setTxHash(hash);
       setLiabilities("");
@@ -178,8 +182,28 @@ export default function ExchangePage() {
             ) : (
               <div className="space-y-4">
                 <div>
+                  <label className="label" htmlFor={tokenId}>
+                    Reserve token (confidential)
+                  </label>
+                  <select
+                    id={tokenId}
+                    className="input"
+                    value={token.address}
+                    onChange={(e) => {
+                      const found = SEPOLIA_TOKENS.find((t) => t.address === e.target.value);
+                      if (found) setToken(found);
+                    }}
+                  >
+                    {SEPOLIA_TOKENS.map((t) => (
+                      <option key={t.address} value={t.address}>
+                        {t.symbol} ({t.decimals} decimals)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="label" htmlFor={liabId}>
-                    Claimed liabilities (units)
+                    Claimed liabilities ({token.symbol} units)
                   </label>
                   <input
                     id={liabId}

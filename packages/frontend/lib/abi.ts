@@ -1,10 +1,6 @@
 import type { Abi } from "viem";
 
-/**
- * ProofOfReserves ABI — regenerated from the compiled artifact.
- * Composable-privacy composition (Zama Season 3): requestReveal is auditor-gated
- * (AuditorCredential ERC-721); the verdict is public, the total is auditor-only.
- */
+/** ProofOfReserves ABI — regenerated from the compiled artifact. Token-denominated. */
 export const proofOfReservesABI = [
   {
     "inputs": [
@@ -146,6 +142,11 @@ export const proofOfReservesABI = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "ZeroToken",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -224,6 +225,12 @@ export const proofOfReservesABI = [
         "type": "uint256"
       },
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
         "indexed": false,
         "internalType": "uint64",
         "name": "claimedLiabilities",
@@ -234,6 +241,12 @@ export const proofOfReservesABI = [
         "internalType": "uint64",
         "name": "deadline",
         "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "decimals",
+        "type": "uint8"
       }
     ],
     "name": "EpochCreated",
@@ -430,6 +443,16 @@ export const proofOfReservesABI = [
   },
   {
     "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint8",
+        "name": "decimals",
+        "type": "uint8"
+      },
       {
         "internalType": "uint64",
         "name": "claimedLiabilities",
@@ -684,6 +707,16 @@ export const proofOfReservesABI = [
     "name": "getEpoch",
     "outputs": [
       {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint8",
+        "name": "decimals",
+        "type": "uint8"
+      },
+      {
         "internalType": "uint64",
         "name": "claimedLiabilities",
         "type": "uint64"
@@ -816,11 +849,7 @@ export const proofOfReservesABI = [
   }
 ] as const satisfies Abi;
 
-/**
- * AuditorCredential ABI — soulbound ERC-721 that accredits PoR auditors.
- * Holding a credential is the on-chain precondition to requestReveal + decrypt
- * an epoch's aggregate total off-chain via EIP-712 user-decryption.
- */
+/** AuditorCredential ABI — soulbound ERC-721 that accredits PoR auditors. */
 export const auditorCredentialABI = [
   {
     "inputs": [
@@ -1481,6 +1510,140 @@ export const auditorCredentialABI = [
     ],
     "name": "transferFrom",
     "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const satisfies Abi;
+
+/** ProofOfReservesFactory ABI — onboards exchanges (deploys a fresh PoR + credential per exchange). */
+export const proofOfReservesFactoryABI = [
+  {
+    "inputs": [],
+    "name": "AdminCannotBeSigner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoExchanges",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAddress",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "exchangeId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "admin",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "por",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "auditorCredential",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "exchangeSigner",
+        "type": "address"
+      }
+    ],
+    "name": "ExchangeRegistered",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "exchangeCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "exchangeId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getExchange",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "admin",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "por",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "auditorCredential",
+            "type": "address"
+          },
+          {
+            "internalType": "uint64",
+            "name": "registeredAt",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct ProofOfReservesFactory.Exchange",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "admin",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "exchangeSigner",
+        "type": "address"
+      }
+    ],
+    "name": "registerExchange",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "exchangeId",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   }
