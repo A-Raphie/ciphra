@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAccount, useReadContracts, useWriteContract } from "wagmi";
 import { Shell } from "@/components/Shell";
 import { NetworkGuard } from "@/components/NetworkGuard";
@@ -16,6 +17,7 @@ import { friendlyError } from "@/lib/errors";
 export default function OnboardPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
+  const router = useRouter();
   const [signerAddr, setSignerAddr] = useState("");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +66,8 @@ export default function OnboardPage() {
       });
       setTxHash(hash);
       setSignerAddr("");
+      // Brief confirmation, then guide the operator to their new exchange pane.
+      setTimeout(() => router.push("/exchange"), 2500);
     } catch (e) {
       setError(friendlyError(e));
     }
@@ -141,11 +145,13 @@ export default function OnboardPage() {
                   {isPending ? "Deploying…" : "Register exchange"}
                 </button>
                 {txHash && (
-                  <p className="text-xs text-success" aria-live="polite">
-                    Registered: <TxLink value={txHash} type="tx" /> — your
-                    exchange&rsquo;s contracts are live. Open the Exchange tab to
-                    create your first epoch.
-                  </p>
+                  <div className="rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm" aria-live="polite" role="status">
+                    <p className="font-semibold text-success">✓ Exchange registered</p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      <TxLink value={txHash} type="tx" /> — taking you to your
+                      Exchange back-office…
+                    </p>
+                  </div>
                 )}
                 <ErrorText error={error} />
               </div>

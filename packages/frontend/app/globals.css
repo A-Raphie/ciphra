@@ -102,6 +102,28 @@ h3 {
   .stat-label {
     @apply text-xs uppercase tracking-wide text-muted-foreground;
   }
+
+  /* Skeleton shimmer for pending contract reads (replaces raw '—'). */
+  .skeleton {
+    @apply inline-block animate-pulse rounded bg-white/[0.06];
+  }
+  .skeleton-stat {
+    @apply skeleton h-7 w-16;
+  }
+  .skeleton-row {
+    @apply skeleton h-16 w-full;
+  }
+
+  /* Dark-themed native select (matches the .input treatment). */
+  select.input {
+    @apply appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23878DAE' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+  }
+  select.input option {
+    background-color: #0d0f1a;
+    color: #edeff7;
+  }
 }
 
 @layer utilities {

@@ -127,7 +127,7 @@ export default function ExchangePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="stat-label">Next epoch</div>
-              <div className="stat">{nextEpochId?.toString() ?? "—"}</div>
+              <div className="stat">{nextEpochId !== undefined ? nextEpochId.toString() : <span className="skeleton-stat" aria-label="Loading" />}</div>
             </div>
             <div>
               <div className="stat-label">Your role</div>

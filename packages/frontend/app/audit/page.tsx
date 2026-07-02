@@ -180,16 +180,24 @@ export default function AuditPage() {
           <div className="card text-sm text-muted">
             <p className="font-semibold text-foreground">No epochs yet.</p>
             <p className="mt-1">
-              An exchange admin needs to open the first attestation epoch. If
-              you&rsquo;re running the demo, this happens automatically via{" "}
+              An exchange admin needs to open the first attestation epoch.{" "}
+              <a href="/exchange" className="text-accent underline">
+                Open the Exchange pane
+              </a>{" "}
+              to create one, or run{" "}
               <code className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-xs">
                 pnpm setup
-              </code>
-              . See the README.
+              </code>{" "}
+              for the demo.
             </p>
           </div>
+        ) : rows === undefined ? (
+          <div className="space-y-4" aria-live="polite" aria-label="Loading epochs">
+            <div className="skeleton-row" />
+            <div className="skeleton-row" />
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4" aria-live="polite">
             {ids.map((idBig, i) => {
               const e = rows?.[i].result as EpochTuple | undefined;
               if (!e) return null;
@@ -203,7 +211,7 @@ export default function AuditPage() {
 
               return (
                 <div key={i} className={`card ${rail}`}>
-                  <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     {/* Left: epoch identity + status */}
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
@@ -254,7 +262,7 @@ export default function AuditPage() {
                     </div>
 
                     {/* Right: actions / verdict */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3 sm:justify-end">
                       {!closed && deadline !== 0n && (
                         <span className="text-xs text-muted">window open</span>
                       )}

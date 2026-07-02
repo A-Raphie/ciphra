@@ -85,7 +85,7 @@ export default function Home() {
   return (
     <Shell>
       {/* ── Hero: split layout — pitch left, live flow diagram right ── */}
-      <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
         {/* Left: pitch */}
         <div>
           <div className="badge mb-5 border-accent/30 bg-accent/10 text-accent">
@@ -100,25 +100,57 @@ export default function Home() {
           <p className="mt-5 max-w-xl text-base text-muted">
             A confidential Proof-of-Reserves on the Zama Protocol. An exchange
             proves its reserves exceed its liabilities — homomorphically summed,
-            trustlessly revealed. The 1-bit verdict is public; the total is
-            decryptable only by a credentialed auditor.
+            trustlessly revealed, denominated in real tokens like cUSDC. The 1-bit
+            verdict is public; the total is decryptable only by a credentialed
+            auditor.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/audit" className="btn-primary">
               Explore the demo — Auditor view
               <span aria-hidden>→</span>
             </Link>
-            <Link href="/exchange" className="btn-ghost">
-              Exchange back-office
+            <Link href="/onboard" className="btn-ghost">
+              Onboard an exchange
             </Link>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            No wallet needed to view epochs and solvency results.
+            No wallet needed to view epochs and solvency results · Sepolia testnet
           </p>
         </div>
 
-        {/* Right: the composition, visualized — reading LIVE epoch 0 */}
+        {/* Right: the composition, visualized */}
         <FlowDiagram live={live} />
+      </section>
+
+      {/* ── Get started in 4 steps — the guided path ── */}
+      <section className="mt-16" aria-label="Get started in 4 steps">
+        <h2 className="mb-5 text-xl font-bold">Get started in 4 steps</h2>
+        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Step
+            n={1}
+            href="/onboard"
+            title="Onboard an exchange"
+            body="Register via the factory — get your own isolated contracts. ~10 seconds."
+          />
+          <Step
+            n={2}
+            href="/exchange"
+            title="Open an epoch"
+            body="Choose a reserve token (cUSDC), publish liabilities, accredit an auditor."
+          />
+          <Step
+            n={3}
+            href="/customer"
+            title="Submit attestations"
+            body="Customers submit encrypted balances — summed under encryption, never read."
+          />
+          <Step
+            n={4}
+            href="/audit"
+            title="Reveal the verdict"
+            body="An accredited auditor drives the reveal. The 1-bit solvency verdict lands on-chain."
+          />
+        </ol>
       </section>
 
       {/* ── The composable split — color-coded by the two-accent system ── */}
@@ -180,33 +212,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── The problem / solution / trustless row ── */}
-      <section className="mt-16" aria-label="How it works">
+      {/* ── Why it's different — one tight row, not three redundant cards ── */}
+      <section className="mt-16" aria-label="Why it's different">
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="card">
-            <AlertIcon className="mb-3 text-xl text-danger" aria-hidden />
-            <h3 className="mb-1.5 font-semibold">The problem</h3>
-            <p className="text-sm text-muted">
-              Post-FTX &ldquo;Proof-of-Reserves&rdquo; leak customer data — every
-              balance visible in Merkle leaves or signed statements.
-            </p>
+          <div className="card flex items-start gap-3">
+            <AlertIcon className="mt-0.5 shrink-0 text-lg text-danger" aria-hidden />
+            <div>
+              <h3 className="text-sm font-semibold">Old PoR leaks balances</h3>
+              <p className="mt-1 text-sm text-muted">
+                Merkle leaves, signed statements — every approach in production
+                today exposes customer data.
+              </p>
+            </div>
           </div>
-          <div className="card">
-            <LockIcon className="mb-3 text-xl text-accent" aria-hidden />
-            <h3 className="mb-1.5 font-semibold">The FHE solution</h3>
-            <p className="text-sm text-muted">
-              Each customer submits an encrypted, exchange-signed balance. The
-              contract sums <em>ciphertexts</em>. No plaintext ever touched.
-            </p>
+          <div className="card flex items-start gap-3">
+            <LockIcon className="mt-0.5 shrink-0 text-lg text-accent" aria-hidden />
+            <div>
+              <h3 className="text-sm font-semibold">FHE sums ciphertexts</h3>
+              <p className="mt-1 text-sm text-muted">
+                Each balance stays encrypted on-chain. The contract adds and
+                compares under encryption — no plaintext ever touched.
+              </p>
+            </div>
           </div>
-          <div className="card">
-            <ShieldIcon className="mb-3 text-xl text-success" aria-hidden />
-            <h3 className="mb-1.5 font-semibold">Trustless</h3>
-            <p className="text-sm text-muted">
-              No operator in the trust path. The verdict is computed on-chain
-              over ciphertexts; KMS decryption is verified on-chain. Plus a
-              fraud-challenge path.
-            </p>
+          <div className="card flex items-start gap-3">
+            <ShieldIcon className="mt-0.5 shrink-0 text-lg text-success" aria-hidden />
+            <div>
+              <h3 className="text-sm font-semibold">No operator in the loop</h3>
+              <p className="mt-1 text-sm text-muted">
+                The verdict is computed on-chain over ciphertexts. Plus a
+                fraud-challenge path — all trustless.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -270,6 +307,25 @@ export default function Home() {
 
 type LiveEpoch = ReturnType<typeof useLiveEpoch0>;
 
+/** A numbered step in the "Get started in 4 steps" strip. */
+function Step({ n, href, title, body }: { n: number; href: string; title: string; body: string }) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className="card flex h-full flex-col transition hover:border-accent/40 hover:shadow-glow-accent"
+        aria-label={`Step ${n}: ${title}`}
+      >
+        <span className="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 font-mono text-sm font-bold text-accent">
+          {n}
+        </span>
+        <h3 className="text-sm font-semibold">{title}</h3>
+        <p className="mt-1 text-xs text-muted">{body}</p>
+      </Link>
+    </li>
+  );
+}
+
 /**
  * The composition, visualized as an animated flow — now reading LIVE epoch 0.
  *   N encrypted balances → Σ (homomorphic sum) → verdict (live: pending/SOLVENT/INSOLVENT)
@@ -313,10 +369,18 @@ function FlowDiagram({ live }: { live: LiveEpoch }) {
 
   return (
     <div
-      className="relative mx-auto w-full max-w-md"
+      className="relative mx-auto w-full max-w-sm sm:max-w-md"
       role="img"
       aria-label={`Flow diagram reading live Sepolia state: ${chipCount} encrypted attestations sum into a reserve total, with a ${verdictLabel} verdict.`}
     >
+      {/* Visually-hidden live-data text alternative for screen readers. */}
+      <p className="sr-only">
+        Epoch 0 status: {isLoading ? "loading" : hasEpoch ? "live on Sepolia" : "not deployed"}.
+        {hasEpoch && attestationCount !== undefined && ` ${Number(attestationCount)} encrypted attestations submitted.`}
+        {hasEpoch && liabilities !== undefined && ` Claimed liabilities: ${formatCompact(liabilities)}.`}
+        {fulfilled ? ` Verdict: ${verdictLabel}.` : " Verdict: pending reveal."}
+        The aggregate total is auditor-gated and not publicly decryptable.
+      </p>
       <div className="card overflow-visible p-6">
         {/* Live-status pill */}
         <div className="mb-4 flex items-center justify-between">

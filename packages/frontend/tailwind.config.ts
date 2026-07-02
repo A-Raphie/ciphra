@@ -36,8 +36,8 @@ const config: Config = {
         },
         foreground: "#EDEFF7",
         muted: {
-          DEFAULT: "#9AA0BC", // AA on bg — body secondary text
-          foreground: "#6B7193", // tertiary / captions
+          DEFAULT: "#AEB4D0", // AAA on bg (9.75:1) — body secondary text
+          foreground: "#878DAE", // AA on bg (6.14:1) — tertiary / captions
         },
         // Semantic status (kept, retuned against the new bg).
         success: "#34D399",

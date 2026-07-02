@@ -8,6 +8,7 @@ import { MenuIcon, XIcon } from "./icons";
 
 const links = [
   { href: "/", label: "Overview" },
+  { href: "/onboard", label: "Onboard" },
   { href: "/exchange", label: "Exchange" },
   { href: "/customer", label: "Customer" },
   { href: "/audit", label: "Auditor" },
@@ -52,7 +53,7 @@ export function MobileNav() {
       {open && (
         <div
           id="mobile-menu"
-          className="absolute left-0 right-0 top-full z-50 border-b border-line bg-navy/95 px-4 py-4 backdrop-blur"
+          className="absolute left-0 right-0 top-full z-50 border-b border-line bg-bg/95 px-4 py-4 backdrop-blur-xl"
           role="menu"
         >
           <nav className="flex flex-col gap-1" aria-label="Mobile">
