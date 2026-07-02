@@ -176,11 +176,14 @@ export default function OnboardPage() {
           ) : (
             <ul className="space-y-2.5">
               {exchanges?.map((res, i) => {
+                // getExchange returns a struct (named fields), not a positional array.
                 const ex = res.result as
-                  | readonly [`0x${string}`, `0x${string}`, `0x${string}`, bigint]
+                  | { admin: `0x${string}`; por: `0x${string}`; auditorCredential: `0x${string}`; registeredAt: bigint }
                   | undefined;
                 if (!ex) return null;
-                const [exAdmin, exPor, exCred] = ex;
+                const exAdmin = ex.admin;
+                const exPor = ex.por;
+                const exCred = ex.auditorCredential;
                 return (
                   <li key={i} className="rounded-lg border border-line bg-black/20 p-3">
                     <div className="flex items-center justify-between">

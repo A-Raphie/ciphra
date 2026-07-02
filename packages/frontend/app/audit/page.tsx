@@ -16,6 +16,7 @@ import {
   tokenInfo,
 } from "@/lib/contract";
 import { friendlyError } from "@/lib/errors";
+import { formatTokenAmount } from "@/lib/parse";
 
 // getEpoch returns: (token, decimals, liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
 type EpochTuple = readonly [
@@ -246,7 +247,9 @@ export default function AuditPage() {
                         </span>
                         <span>
                           <span className="text-muted-foreground">liabilities </span>
-                          <span className="font-mono text-foreground">{liabilities.toString()}</span>
+                          <span className="font-mono text-foreground">
+                            {formatTokenAmount(liabilities, epochDecimals)} {tokenInfo(epochToken).symbol}
+                          </span>
                         </span>
                         <span>
                           <span className="text-muted-foreground">attestations </span>

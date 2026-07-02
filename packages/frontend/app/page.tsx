@@ -11,6 +11,7 @@ import {
   IS_UNDEPLOYED,
   tokenInfo,
 } from "@/lib/contract";
+import { formatTokenAmount } from "@/lib/parse";
 
 // getEpoch returns: (token, decimals, liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
 type EpochTuple = readonly [
@@ -121,11 +122,19 @@ function VerdictBoard() {
     query: { enabled: count > 0 },
   });
 
+  // getExchange returns a struct (named fields), not a positional array.
+  type ExchangeStruct = {
+    admin: `0x${string}`;
+    por: `0x${string}`;
+    auditorCredential: `0x${string}`;
+    registeredAt: bigint;
+  };
+
   // For each exchange, read epoch 0's solvency state.
   const porAddresses = (exchanges ?? [])
     .map((res) => {
-      const ex = res.result as readonly [`0x${string}`, `0x${string}`, `0x${string}`, bigint] | undefined;
-      return ex?.[1]; // the PoR address
+      const ex = res.result as ExchangeStruct | undefined;
+      return ex?.por;
     })
     .filter((a): a is `0x${string}` => !!a);
 
@@ -186,7 +195,7 @@ function VerdictBoard() {
   // Factory exchanges.
   for (let i = 0; i < porAddresses.length; i++) {
     const ep = epochs?.[i]?.result as EpochTuple | undefined;
-    const ex = exchanges?.[i]?.result as readonly [`0x${string}`, `0x${string}`, `0x${string}`, bigint] | undefined;
+    const ex = exchanges?.[i]?.result as ExchangeStruct | undefined;
     if (!ep || !ex) continue;
     if (ep[2] === 0n) continue; // no epoch yet
     rows.push({
@@ -249,7 +258,7 @@ function VerdictBoard() {
                   </div>
                   <div className="mt-1 text-xs text-muted">
                     {row.attestationCount.toString()} encrypted attestations ·
-                    liabilities {formatCompact(row.liabilities)} {tok.symbol}
+                    liabilities {formatTokenAmount(row.liabilities, tokenInfo(row.token).decimals)} {tok.symbol}
                   </div>
                 </div>
 
