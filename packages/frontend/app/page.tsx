@@ -74,18 +74,6 @@ export default function Home() {
             </p>
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          Built on the{" "}
-          <a
-            href="https://docs.zama.org/protocol"
-            target="_blank"
-            rel="noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Zama Protocol
-          </a>{" "}
-          · Sepolia testnet · composable privacy for Zama Season 3
-        </p>
       </section>
     </Shell>
   );
