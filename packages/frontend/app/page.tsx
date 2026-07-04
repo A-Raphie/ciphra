@@ -33,7 +33,7 @@ export default function Home() {
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
-            <span className="text-gradient">Ciphra</span>
+            <span className="text-gradient">Seal</span>
           </h1>
           <p className="mt-1 text-sm text-muted">
             Confidential Proof-of-Reserves. Exchanges prove solvency in real

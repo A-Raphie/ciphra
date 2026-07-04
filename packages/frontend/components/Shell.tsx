@@ -14,7 +14,7 @@ const links = [
   { href: "/audit", label: "Auditor" },
 ];
 
-const REPO_URL = "https://github.com/A-Raphie/ciphra";
+const REPO_URL = "https://github.com/A-Raphie/seal";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,11 +26,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Link
             href="/"
             className="flex items-center gap-2.5"
-            aria-label="Ciphra home"
+            aria-label="Seal home"
           >
             <Logo size={28} />
             <span className="font-display text-lg font-bold tracking-tight">
-              <span className="text-gradient">Ciphra</span>
+              <span className="text-gradient">Seal</span>
             </span>
           </Link>
 
@@ -100,7 +100,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
               Source
             </a>
           </div>
-        </div>
         </div>
       </footer>
     </div>

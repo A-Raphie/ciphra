@@ -3,20 +3,20 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Ciphra — Confidential Proof-of-Reserves on Zama",
+  title: "Seal — Confidential Proof-of-Reserves on Zama",
   description:
-    "Ciphra: exchanges prove solvency in real tokens without revealing a single balance. Composable privacy on the Zama Protocol — encrypted balances, public verdicts, auditor-gated totals.",
-  applicationName: "Ciphra",
+    "Seal: exchanges prove solvency in real tokens without revealing a single balance. Composable privacy on the Zama Protocol — encrypted balances, public verdicts, auditor-gated totals.",
+  applicationName: "Seal",
   openGraph: {
-    title: "Ciphra — Confidential Proof-of-Reserves",
+    title: "Seal — Confidential Proof-of-Reserves",
     description:
       "Exchanges prove solvency in real tokens without revealing a single balance. Live on Sepolia.",
     type: "website",
-    siteName: "Ciphra",
+    siteName: "Seal",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ciphra — Confidential Proof-of-Reserves",
+    title: "Seal — Confidential Proof-of-Reserves",
     description:
       "Exchanges prove solvency in real tokens without revealing a single balance. Live on Sepolia.",
   },
