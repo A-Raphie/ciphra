@@ -1,27 +1,20 @@
 /**
- * Deployed ProofOfReserves address. Set NEXT_PUBLIC_POR_ADDRESS in env after
- * deploying to Sepolia. Falls back to a placeholder so the app compiles pre-deploy.
- *
- * In the factory world, this is the FIRST registered exchange's PoR (for the
- * demo). The onboarding flow + the factory reads resolve additional exchanges.
+ * Deployed contract addresses on Sepolia. Env vars take precedence (for
+ * re-deploys to different addresses); the hardcoded fallbacks are the current
+ * live Sepolia deploy so the app works even if env injection fails (Vercel
+ * `encrypted` NEXT_PUBLIC vars can be flaky).
  */
 export const PROOF_OF_RESERVES_ADDRESS = (process.env.NEXT_PUBLIC_POR_ADDRESS ??
-  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+  "0x9182cEF09299906bDb9Af5bD705135d06675018F") as `0x${string}`;
 
-/**
- * Deployed AuditorCredential address (soulbound ERC-721 that gates who may
- * reveal + decrypt an epoch's aggregate total).
- */
 export const AUDITOR_CREDENTIAL_ADDRESS = (process.env.NEXT_PUBLIC_AUDITOR_CREDENTIAL_ADDRESS ??
-  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+  "0x56e66a35925aEf86D48C85D9222A1cD6dDa3B25b") as `0x${string}`;
 
-/**
- * Deployed ProofOfReservesFactory address. The frontend reads this to list
- * onboarded exchanges and resolve per-exchange contract pairs.
- */
 export const FACTORY_ADDRESS = (process.env.NEXT_PUBLIC_FACTORY_ADDRESS ??
-  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+  "0x95fd86974bbbDBf7a69c5b269f17Eb1a0BdA0690") as `0x${string}`;
 
+// Always deployed (hardcoded Sepolia fallbacks); the banner is kept for safety
+// but will never show with the current fallback addresses.
 export const IS_UNDEPLOYED = PROOF_OF_RESERVES_ADDRESS === "0x0000000000000000000000000000000000000000";
 
 /** Sepolia chain id (wagmi chain config + NetworkGuard). */
