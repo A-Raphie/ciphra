@@ -14,19 +14,19 @@ const links = [
   { href: "/audit", label: "Auditor" },
 ];
 
-const REPO_URL = "https://github.com/A-Raphie/fhe-proof-of-reserves";
+const REPO_URL = "https://github.com/A-Raphie/ciphra";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <div className="relative min-h-screen">
-      {/* Sticky frosted header */}
+      {/* Sticky frosted header — full-bleed bar, wide inner content */}
       <header className="sticky top-0 z-50 border-b border-line bg-bg/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5">
+        <div className="mx-auto flex max-w-screen-xl items-center justify-between gap-4 px-6 py-3.5">
           <Link
             href="/"
             className="flex items-center gap-2.5"
-            aria-label="FHE Proof-of-Reserves home"
+            aria-label="Ciphra home"
           >
             <Logo size={28} />
             <span className="font-display text-lg font-bold tracking-tight">
@@ -72,11 +72,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
 
-      <main id="main" className="mx-auto max-w-6xl px-4 py-10">
+      <main id="main" className="mx-auto max-w-screen-xl px-6 py-10">
         {children}
       </main>
 
-      <footer className="mx-auto max-w-6xl px-4 pb-10 pt-8">
+      <footer className="mx-auto max-w-screen-xl px-6 pb-10 pt-8">
         <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-line pt-5 text-center text-xs text-muted">
           <span className="inline-flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden />

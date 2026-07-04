@@ -3,15 +3,22 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "FHE Proof-of-Reserves — composable confidential solvency on Zama",
+  title: "Ciphra — Confidential Proof-of-Reserves on Zama",
   description:
-    "An exchange proves its reserves exceed its liabilities without revealing a single customer balance. Composable privacy on the Zama Protocol: a public solvency verdict, an auditor-gated total.",
-  applicationName: "FHE Proof-of-Reserves",
+    "Ciphra: exchanges prove solvency in real tokens without revealing a single balance. Composable privacy on the Zama Protocol — encrypted balances, public verdicts, auditor-gated totals.",
+  applicationName: "Ciphra",
   openGraph: {
-    title: "FHE Proof-of-Reserves",
+    title: "Ciphra — Confidential Proof-of-Reserves",
     description:
-      "Prove solvency without revealing a single balance. Composable confidential Proof-of-Reserves on the Zama Protocol.",
+      "Exchanges prove solvency in real tokens without revealing a single balance. Live on Sepolia.",
     type: "website",
+    siteName: "Ciphra",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ciphra — Confidential Proof-of-Reserves",
+    description:
+      "Exchanges prove solvency in real tokens without revealing a single balance. Live on Sepolia.",
   },
 };
 
