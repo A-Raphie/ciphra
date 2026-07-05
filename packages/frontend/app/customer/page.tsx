@@ -221,7 +221,7 @@ export default function CustomerPage() {
           </p>
           <NetworkGuard>
             {isConnected ? (
-              <ChallengeForm epochId={epochId} deadline={deadline} />
+              <ChallengeForm epochId={epochId} deadline={deadline} token={epochToken ?? "0x0000000000000000000000000000000000000000"} />
             ) : (
               <p className="text-sm text-muted">Connect your wallet to file a challenge.</p>
             )}

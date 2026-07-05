@@ -2,11 +2,11 @@
 //
 // Exchange back-office CLI for FHE Proof-of-Reserves.
 //
-//   exchange-cli sign <epochId> <customer> <handleBytes32> <deadline>
+//   exchange-cli sign <epochId> <token> <customer> <handleBytes32> <deadline>
 //     -> prints the exchange's EIP-191 signature over the attestation hash
 //        (the same hash ProofOfReserves._hashAttestation computes on-chain).
 //
-//   exchange-cli create-epoch <claimedLiabilities> <windowSeconds>
+//   exchange-cli create-epoch <token> <tokenDecimals> <claimedLiabilities> <windowSeconds>
 //     -> sends createEpoch() as the exchange admin and prints the new epoch id.
 //
 // Configure via env (see .env.example):
@@ -23,15 +23,19 @@ import { readFileSync } from "node:fs";
 
 const ABI = [
   "event EpochCreated(uint256 indexed epochId, uint64 claimedLiabilities, uint64 deadline)",
-  "function createEpoch(uint64 claimedLiabilities, uint64 windowSeconds) external returns (uint256)",
+  "function createEpoch(address token, uint8 tokenDecimals, uint64 claimedLiabilities, uint64 windowSeconds) external returns (uint256)",
   "function exchangeAdmin() view returns (address)",
   "function exchangeSigner() view returns (address)",
 ];
 
-function hashAttestation(epochId: bigint, customer: string, handle: string, deadline: bigint): string {
+/**
+ * Mirrors ProofOfReserves._hashAttestation EXACTLY. Must pack 5 fields:
+ * [epochId, token, customer, handleBytes32, deadline].
+ */
+function hashAttestation(epochId: bigint, token: string, customer: string, handle: string, deadline: bigint): string {
   const packed = ethers.solidityPacked(
-    ["uint256", "address", "bytes32", "uint64"],
-    [epochId, customer, handle, deadline],
+    ["uint256", "address", "address", "bytes32", "uint64"],
+    [epochId, token, customer, handle, deadline],
   );
   return ethers.keccak256(packed);
 }
@@ -55,21 +59,21 @@ async function main() {
   const contract = new ethers.Contract(por, ABI, wallet);
 
   if (cmd === "sign") {
-    const [epochId, customer, handle, deadline] = args;
-    if (!epochId || !customer || !handle || !deadline) {
-      console.error("usage: sign <epochId> <customer> <handleBytes32> <deadline>");
+    const [epochId, token, customer, handle, deadline] = args;
+    if (!epochId || !token || !customer || !handle || !deadline) {
+      console.error("usage: sign <epochId> <token> <customer> <handleBytes32> <deadline>");
       process.exit(1);
     }
-    const rawHash = hashAttestation(BigInt(epochId), customer, handle, BigInt(deadline));
+    const rawHash = hashAttestation(BigInt(epochId), token, customer, handle, BigInt(deadline));
     const sig = await wallet.signMessage(ethers.getBytes(rawHash));
     console.log(sig);
     return;
   }
 
   if (cmd === "create-epoch") {
-    const [liabilities, windowSeconds] = args;
-    if (!liabilities || !windowSeconds) {
-      console.error("usage: create-epoch <claimedLiabilities> <windowSeconds>");
+    const [token, tokenDecimals, liabilities, windowSeconds] = args;
+    if (!token || !tokenDecimals || !liabilities || !windowSeconds) {
+      console.error("usage: create-epoch <token> <tokenDecimals> <claimedLiabilities> <windowSeconds>");
       process.exit(1);
     }
     const admin = await contract.exchangeAdmin();
@@ -80,7 +84,7 @@ async function main() {
     if (wallet.address.toLowerCase() !== admin.toLowerCase()) {
       console.error("⚠ wallet is not the exchange admin — createEpoch will revert.");
     }
-    const tx = await contract.createEpoch(BigInt(liabilities), BigInt(windowSeconds));
+    const tx = await contract.createEpoch(token, Number(tokenDecimals), BigInt(liabilities), BigInt(windowSeconds));
     const receipt = await tx.wait();
     const eventLog = receipt?.logs
       .map((l: Log): LogDescription | null => {

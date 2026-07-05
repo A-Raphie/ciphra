@@ -4,15 +4,18 @@ import Link from "next/link";
 import { useReadContracts } from "wagmi";
 import { Shell } from "@/components/Shell";
 import { Reveal } from "@/components/Reveal";
-import { CheckIcon, XIcon, KeyIcon, LockIcon, SigmaIcon } from "@/components/icons";
+import { CheckIcon, XIcon, KeyIcon, LockIcon, SigmaIcon, ExternalLinkIcon } from "@/components/icons";
 import { proofOfReservesABI, proofOfReservesFactoryABI } from "@/lib/abi";
 import {
   PROOF_OF_RESERVES_ADDRESS,
+  AUDITOR_CREDENTIAL_ADDRESS,
   FACTORY_ADDRESS,
   IS_UNDEPLOYED,
   tokenInfo,
 } from "@/lib/contract";
 import { formatTokenAmount } from "@/lib/parse";
+
+const SEPOLIA_BASE = "https://sepolia.etherscan.io/address";
 
 // getEpoch returns: (token, decimals, liabilities, deadline, solvent, revealed, fulfilled, auditor, attCount)
 type EpochTuple = readonly [
@@ -30,23 +33,24 @@ type EpochTuple = readonly [
 export default function Home() {
   return (
     <Shell>
-      {/* ── Hero: punched headline + CTA ── */}
+      {/* ── Hero: what it is, then why it matters ── */}
       <Reveal className="mb-10">
         <div className="badge mb-5 border-accent/30 bg-accent/10 text-accent">
           <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
           Composable Privacy · Zama Season 3
         </div>
         <h1 className="text-hero font-bold">
+          A confidential Proof-of-Reserves protocol.
+          <br />
           Balances stay encrypted.
           <br />
-          The verdict goes public.
-          <br />
-          <span className="text-gradient">Only auditors see the total.</span>
+          <span className="text-gradient">The 1-bit verdict goes public.</span>
         </h1>
         <p className="mt-5 max-w-xl text-base text-muted">
-          Seal is a confidential Proof-of-Reserves on the Zama Protocol.
           Exchanges prove solvency in real tokens — without revealing a single
-          balance.
+          balance. Every customer balance is FHE-encrypted client-side, summed
+          homomorphically on-chain, and only the aggregate total + a 1-bit
+          solvency verdict is ever decrypted.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Link href="/onboard" className="btn-primary">
@@ -59,8 +63,18 @@ export default function Home() {
         </div>
       </Reveal>
 
-      {/* ── The product: a live verdict board ── */}
+      {/* ── Live on Sepolia: proof of real deployment ── */}
+      <Reveal delay={50}>
+        <LiveSepoliaSection />
+      </Reveal>
+
+      {/* ── Code snippet: shows it's infrastructure ── */}
       <Reveal delay={100}>
+        <CodeSnippetSection />
+      </Reveal>
+
+      {/* ── The product: a live verdict board ── */}
+      <Reveal delay={150}>
         <VerdictBoard />
       </Reveal>
 
@@ -126,6 +140,119 @@ export default function Home() {
         </section>
       </Reveal>
     </Shell>
+  );
+}
+
+/**
+ * Live on Sepolia — clickable contract addresses with explorer links.
+ * (Pattern from neurodegen.xyz / routedock.xyz: show real deployments.)
+ */
+function LiveSepoliaSection() {
+  const contracts = [
+    { label: "ProofOfReservesFactory", address: FACTORY_ADDRESS, desc: "Multi-exchange onboarding" },
+    { label: "ProofOfReserves (Exchange #0)", address: PROOF_OF_RESERVES_ADDRESS, desc: "cUSDC-denominated epoch" },
+    { label: "AuditorCredential", address: AUDITOR_CREDENTIAL_ADDRESS, desc: "Soulbound ERC-721 access gate" },
+  ];
+
+  return (
+    <section className="mt-12" aria-label="Live on Sepolia">
+      <h2 className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        Live on Sepolia
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {contracts.map((c) => (
+          <a
+            key={c.address}
+            href={`${SEPOLIA_BASE}/${c.address}`}
+            target="_blank"
+            rel="noreferrer"
+            className="card group flex flex-col gap-2 transition hover:border-accent/40"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs text-foreground">{c.label}</span>
+              <ExternalLinkIcon className="ml-auto h-3.5 w-3.5 text-muted opacity-0 transition group-hover:opacity-100" aria-hidden />
+            </div>
+            <span className="font-mono text-[10px] text-muted break-all">{c.address}</span>
+            <span className="text-xs text-muted-foreground">{c.desc}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Code snippet — shows the integration pattern. (Pattern from routedock.xyz.)
+ */
+function CodeSnippetSection() {
+  const lines = [
+    { indent: 0, parts: [{ cls: "text-accent", text: "// 1. Customer encrypts balance client-side" }] },
+    { indent: 2, parts: [
+      { cls: "text-muted-foreground", text: "const " },
+      { cls: "text-foreground", text: "{ encryptedValues, inputProof }" },
+      { cls: "text-muted-foreground", text: " = await " },
+      { cls: "text-cyan", text: "encrypt" },
+      { cls: "text-foreground", text: "({ values: [{ value: 4200n, type: 'euint64' }] })" },
+    ]},
+    { indent: 0, parts: [{ cls: "text-muted-foreground", text: "" }] },
+    { indent: 0, parts: [{ cls: "text-accent", text: "// 2. Exchange signs the attestation off-chain" }] },
+    { indent: 2, parts: [
+      { cls: "text-muted-foreground", text: "const " },
+      { cls: "text-foreground", text: "{ signature }" },
+      { cls: "text-muted-foreground", text: " = await " },
+      { cls: "text-cyan", text: "signAttestation" },
+      { cls: "text-foreground", text: "(key, epochId, token, customer, handle, deadline)" },
+    ]},
+    { indent: 0, parts: [{ cls: "text-muted-foreground", text: "" }] },
+    { indent: 0, parts: [{ cls: "text-accent", text: "// 3. Contract sums ciphertexts homomorphically" }] },
+    { indent: 2, parts: [
+      { cls: "text-muted-foreground", text: "await " },
+      { cls: "text-foreground", text: "por" },
+      { cls: "text-muted-foreground", text: "." },
+      { cls: "text-cyan", text: "registerAttestation" },
+      { cls: "text-foreground", text: "(epochId, handle, proof, signature)" },
+    ]},
+    { indent: 0, parts: [{ cls: "text-muted-foreground", text: "" }] },
+    { indent: 0, parts: [{ cls: "text-accent", text: "// 4. Only the 1-bit verdict is ever public" }] },
+    { indent: 2, parts: [
+      { cls: "text-muted-foreground", text: "const " },
+      { cls: "text-foreground", text: "solvent" },
+      { cls: "text-muted-foreground", text: " = await " },
+      { cls: "text-foreground", text: "por" },
+      { cls: "text-muted-foreground", text: "." },
+      { cls: "text-cyan", text: "isSolvent" },
+      { cls: "text-foreground", text: "(epochId)" },
+      { cls: "text-accent", text: "  // -> boolean" },
+    ]},
+  ];
+
+  return (
+    <section className="mt-12" aria-label="Integration">
+      <h2 className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        Integration
+      </h2>
+      <div className="card overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-line px-4 py-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-danger/60" aria-hidden />
+          <span className="h-2.5 w-2.5 rounded-full bg-warning/60" aria-hidden />
+          <span className="h-2.5 w-2.5 rounded-full bg-success/60" aria-hidden />
+          <span className="ml-2 font-mono text-[10px] text-muted">seal-flow.ts</span>
+        </div>
+        <pre className="overflow-x-auto p-4 text-[13px] leading-relaxed">
+          <code className="font-mono">
+            {lines.map((line, i) => (
+              <span key={i}>
+                {line.indent > 0 && "  ".repeat(line.indent)}
+                {line.parts.map((p, j) => (
+                  <span key={j} className={p.cls}>{p.text}</span>
+                ))}
+                {"\n"}
+              </span>
+            ))}
+          </code>
+        </pre>
+      </div>
+    </section>
   );
 }
 

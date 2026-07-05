@@ -23,7 +23,7 @@ import { isValidUint } from "@/lib/parse";
  *   4. After confirmation, decrypt the 1-bit `differ` verdict via
  *      `useDecryptPublicValues` + `fulfillChallenge`.
  */
-export function ChallengeForm({ epochId, deadline }: { epochId: string; deadline: bigint }) {
+export function ChallengeForm({ epochId, deadline, token }: { epochId: string; deadline: bigint; token: `0x${string}` }) {
   const { address } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
   const { mutateAsync: encrypt, isPending: isEncrypting } = useEncrypt();
@@ -62,7 +62,7 @@ export function ChallengeForm({ epochId, deadline }: { epochId: string; deadline
     const res = await fetch("/api/exchange/sign", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ epochId, customer: address, handle, deadline: deadline.toString() }),
+      body: JSON.stringify({ epochId, token, customer: address, handle, deadline: deadline.toString() }),
     });
     if (!res.ok) throw new Error(`Signing failed: ${await res.text()}`);
     const { signature } = (await res.json()) as { signature: `0x${string}` };

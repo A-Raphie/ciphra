@@ -8,6 +8,7 @@ import { Logo } from "./icons";
 
 const links = [
   { href: "/", label: "Overview" },
+  { href: "/judges", label: "For Judges" },
   { href: "/onboard", label: "Onboard" },
   { href: "/exchange", label: "Exchange" },
   { href: "/customer", label: "Customer" },
@@ -79,28 +80,68 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <footer className="mt-auto px-6 pb-8 pt-4 md:px-10">
-        <div className="flex items-center justify-center gap-2 border-t border-line pt-6 text-center text-xs text-muted">
-          <span>
-            Built on{" "}
+        <div className="border-t border-line pt-6">
+          {/* Live contracts row */}
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-muted">
             <a
-              className="text-muted-foreground transition hover:text-foreground"
-              href="https://docs.zama.org/protocol"
+              href="https://sepolia.etherscan.io/address/0x95fd86974bbbDBf7a69c5b269f17Eb1a0BdA0690"
               target="_blank"
               rel="noreferrer"
+              className="font-mono transition hover:text-foreground"
             >
-              Zama FHEVM
-            </a>{" "}
-            by{" "}
+              Factory
+            </a>
+            <a
+              href="https://sepolia.etherscan.io/address/0x9182cEF09299906bDb9Af5bD705135d06675018F"
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono transition hover:text-foreground"
+            >
+              PoR
+            </a>
+            <a
+              href="https://sepolia.etherscan.io/address/0x56e66a35925aEf86D48C85D9222A1cD6dDa3B25b"
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono transition hover:text-foreground"
+            >
+              AuditorCredential
+            </a>
+          </div>
+          {/* Main footer row */}
+          <div className="flex flex-wrap items-center justify-center gap-3 text-center text-xs text-muted">
+            <span>
+              Built on{" "}
+              <a
+                className="text-muted-foreground transition hover:text-foreground"
+                href="https://docs.zama.org/protocol"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Zama FHEVM
+              </a>
+            </span>
+            <span aria-hidden>·</span>
             <a
               className="text-muted-foreground transition hover:text-foreground"
               href="https://x.com/A_raphie"
               target="_blank"
               rel="noreferrer"
             >
-              A_Raphie
-            </a>{" "}
-            · Sepolia testnet
-          </span>
+              @A_Raphie
+            </a>
+            <span aria-hidden>·</span>
+            <a
+              className="text-muted-foreground transition hover:text-foreground"
+              href="https://github.com/A-Raphie/seal"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+            </a>
+            <span aria-hidden>·</span>
+            <span className="text-muted-foreground">Sepolia testnet</span>
+          </div>
         </div>
       </footer>
     </div>
