@@ -23,7 +23,8 @@ const config: Config = {
         bg: "#07080F",
         surface: {
           DEFAULT: "#0D0F1A", // card base
-          2: "#12141F", // raised / hover
+          2: "#12141F", // raised
+          hover: "#161922", // hover state (3-tier ladder: bg→surface→surface-hover)
         },
         // Accents — the violet/cyan semantic pair.
         accent: {

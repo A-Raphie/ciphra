@@ -20,49 +20,46 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <div className="relative min-h-screen">
-      {/* Sticky frosted header — full-bleed bar, wide inner content */}
-      <header className="sticky top-0 z-50 border-b border-line bg-bg/70 backdrop-blur-xl">
-        <div className="flex items-center justify-between gap-4 px-6 py-3.5 lg:px-10">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5"
-            aria-label="Seal home"
-          >
-            <Logo size={28} />
-            <span className="font-display text-lg font-bold tracking-tight">
-              <span className="text-gradient">Seal</span>
-            </span>
-          </Link>
+      {/* Floating glass nav pill (winsznx pattern). */}
+      <nav className="nav-pill" aria-label="Primary">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Seal home">
+          <Logo size={26} />
+          <span className="font-display text-lg font-bold tracking-tight">
+            <span className="text-gradient">Seal</span>
+          </span>
+        </Link>
 
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
-            {links.map((l) => {
-              const active = pathname === l.href;
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`relative rounded-lg px-3 py-1.5 text-sm transition ${
-                    active ? "text-foreground" : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  {l.label}
-                  {active && (
-                    <span className="absolute inset-x-3 -bottom-px h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:block">
-              <ConnectButton showBalance={false} />
-            </div>
-            <MobileNav />
-          </div>
+        <div className="hidden items-center gap-1 md:flex">
+          {links.map((l) => {
+            const active = pathname === l.href;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={active ? "page" : undefined}
+                className={`relative rounded-lg px-3 py-1.5 text-sm transition ${
+                  active ? "text-foreground" : "text-muted hover:text-foreground"
+                }`}
+              >
+                {l.label}
+                {active && (
+                  <span className="absolute inset-x-3 -bottom-px h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
+                )}
+              </Link>
+            );
+          })}
         </div>
-      </header>
+
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:block">
+            <ConnectButton showBalance={false} />
+          </div>
+          <MobileNav />
+        </div>
+      </nav>
+
+      {/* Spacer for the fixed nav pill. */}
+      <div className="h-20" aria-hidden />
 
       {/* Skip link — first focusable element for keyboard users. */}
       <a
@@ -72,11 +69,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
 
-      <main id="main" className="px-6 py-10 lg:px-10">
+      <main id="main" className="px-6 py-12 md:px-10 md:py-16">
         {children}
       </main>
 
-      <footer className="px-6 pb-10 pt-8 lg:px-10">
+      {/* Giant footer wordmark (winsznx pattern). */}
+      <div className="footer-wordmark" aria-hidden>
+        SEAL
+      </div>
+
+      <footer className="px-6 pb-10 pt-8 md:px-10">
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5 text-xs text-muted">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden />

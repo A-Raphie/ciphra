@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useReadContracts } from "wagmi";
 import { Shell } from "@/components/Shell";
-import { CheckIcon, XIcon, KeyIcon, LockIcon } from "@/components/icons";
+import { Reveal } from "@/components/Reveal";
+import { CheckIcon, XIcon, KeyIcon, LockIcon, SigmaIcon } from "@/components/icons";
 import { proofOfReservesABI, proofOfReservesFactoryABI } from "@/lib/abi";
 import {
   PROOF_OF_RESERVES_ADDRESS,
@@ -29,53 +30,149 @@ type EpochTuple = readonly [
 export default function Home() {
   return (
     <Shell>
-      {/* ── Brand strip (compact, not a pitch) ── */}
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
-            <span className="text-gradient">Seal</span>
-          </h1>
-          <p className="mt-1 text-sm text-muted">
-            Confidential Proof-of-Reserves. Exchanges prove solvency in real
-            tokens — without revealing a single balance.
-          </p>
+      {/* ── Hero: punched headline + CTA ── */}
+      <Reveal className="mb-10">
+        <div className="badge mb-5 border-accent/30 bg-accent/10 text-accent">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
+          Composable Privacy · Zama Season 3
         </div>
-        <Link href="/onboard" className="btn-primary shrink-0">
-          Onboard an exchange
-          <span aria-hidden>→</span>
-        </Link>
-      </div>
+        <h1 className="text-hero font-bold">
+          Balances stay encrypted.
+          <br />
+          The verdict goes public.
+          <br />
+          <span className="text-gradient">Only auditors see the total.</span>
+        </h1>
+        <p className="mt-5 max-w-xl text-base text-muted">
+          Seal is a confidential Proof-of-Reserves on the Zama Protocol.
+          Exchanges prove solvency in real tokens — without revealing a single
+          balance.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Link href="/onboard" className="btn-primary">
+            Onboard an exchange
+            <span aria-hidden>→</span>
+          </Link>
+          <Link href="/audit" className="btn-ghost">
+            View live verdicts
+          </Link>
+        </div>
+      </Reveal>
 
       {/* ── The product: a live verdict board ── */}
-      <VerdictBoard />
+      <Reveal delay={100}>
+        <VerdictBoard />
+      </Reveal>
 
-      {/* ── One-line how (not four cards) ── */}
-      <section className="mt-12" aria-label="How it works">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/[0.04] px-4 py-3">
-            <LockIcon className="shrink-0 text-lg text-accent" aria-hidden />
-            <p className="text-sm text-muted">
-              <span className="font-semibold text-foreground">Balances stay encrypted.</span>{" "}
-              Summed under FHE, never decrypted by anyone.
-            </p>
+      {/* ── Bento grid: how it works (asymmetric, animated widget) ── */}
+      <Reveal delay={200}>
+        <section className="mt-20" aria-label="How it works">
+          <h2 className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            How it works
+          </h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Hero card: spans 2 cols, has the animated widget */}
+            <div className="card card-hover md:col-span-2">
+              <div className="mb-3 flex items-center gap-2 text-accent">
+                <LockIcon className="text-lg" aria-hidden />
+                <span className="badge border-accent/30 bg-accent/10 text-accent">
+                  never readable
+                </span>
+              </div>
+              <p className="mb-4 text-sm text-muted">
+                Each customer&rsquo;s balance gets{" "}
+                <code className="font-mono text-xs text-muted-foreground">
+                  FHE.allowThis
+                </code>{" "}
+                only — permanently undecryptable. The contract sums ciphertexts
+                homomorphically. No plaintext ever touched.
+              </p>
+              {/* Mini animated flow widget */}
+              <MiniFlowWidget />
+            </div>
+
+            {/* Card 2: verdict is public */}
+            <div className="card card-hover rail-cyan">
+              <div className="mb-3 flex items-center gap-2 text-cyan">
+                <CheckIcon className="text-lg" aria-hidden />
+                <span className="badge border-cyan/30 bg-cyan/10 text-cyan">
+                  public
+                </span>
+              </div>
+              <p className="stat mb-1 text-cyan">1-bit verdict</p>
+              <p className="text-sm text-muted">
+                &ldquo;Is the exchange solvent?&rdquo; — a public good. Anyone
+                can verify on-chain.
+              </p>
+            </div>
+
+            {/* Card 3: total is auditor-gated */}
+            <div className="card card-hover md:col-span-3">
+              <div className="mb-3 flex items-center gap-2 text-accent">
+                <KeyIcon className="text-lg" aria-hidden />
+                <span className="badge border-accent/30 bg-accent/10 text-accent">
+                  auditor-gated
+                </span>
+              </div>
+              <p className="stat mb-1">aggregate total</p>
+              <p className="text-sm text-muted">
+                The actual reserve number is commercially sensitive. Only a
+                soulbound ERC-721 credential holder can decrypt it, off-chain via
+                EIP-712. Revoke the credential → the auditor loses all future
+                access instantly.
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-cyan/20 bg-cyan/[0.04] px-4 py-3">
-            <CheckIcon className="shrink-0 text-lg text-cyan" aria-hidden />
-            <p className="text-sm text-muted">
-              <span className="font-semibold text-foreground">Verdict is public.</span>{" "}
-              Solvent or not — anyone can verify on-chain.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/[0.04] px-4 py-3">
-            <KeyIcon className="shrink-0 text-lg text-accent" aria-hidden />
-            <p className="text-sm text-muted">
-              <span className="font-semibold text-foreground">Total is auditor-gated.</span>{" "}
-              Only a credentialed auditor reads the number.
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
+      </Reveal>
     </Shell>
+  );
+}
+
+/**
+ * Mini animated flow widget — embedded in the bento card.
+ * Encrypted balances → Σ (homomorphic sum) → the sum stays sealed.
+ * Pure CSS, respects reduced-motion.
+ */
+function MiniFlowWidget() {
+  const balances = [{ d: "0s" }, { d: "0.8s" }, { d: "1.6s" }];
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-line bg-black/20 p-3">
+      {/* Encrypted balance chips */}
+      <div className="flex flex-col gap-1.5">
+        {balances.map((b, i) => (
+          <div key={i} className="relative flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded border border-accent/30 bg-accent/10 text-[10px] text-accent">
+              <LockIcon aria-hidden />
+            </span>
+            <span className="font-mono text-[10px] text-muted">enc #{i + 1}</span>
+            <span
+              className="absolute left-6 top-1/2 h-1 w-1 -translate-y-1/2 rounded-full bg-accent animate-flow-dot"
+              style={{ animationDelay: b.d }}
+              aria-hidden
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Arrow */}
+      <div className="h-px w-6 bg-gradient-to-r from-accent/60 to-line" aria-hidden />
+
+      {/* Σ node */}
+      <div className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface-2 px-3 py-2 shadow-glow-accent">
+        <SigmaIcon className="text-sm text-accent" aria-hidden />
+        <span className="font-mono text-xs font-medium text-foreground">FHE.add</span>
+      </div>
+
+      {/* Arrow */}
+      <div className="h-px w-6 bg-gradient-to-r from-line to-accent/60" aria-hidden />
+
+      {/* Sealed total */}
+      <div className="flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/5 px-3 py-2">
+        <KeyIcon className="animate-gate-shimmer text-sm text-accent" aria-hidden />
+        <span className="font-mono text-xs font-medium text-accent">sealed</span>
+      </div>
+    </div>
   );
 }
 
